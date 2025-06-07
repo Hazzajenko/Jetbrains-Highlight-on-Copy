@@ -1,15 +1,31 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.hazzajenko.jetbrainshighlightoncopy</id>
-    <name>Jetbrains-Highlight-on-Copy</name>
-    <vendor>hazzajenko</vendor>
+    <name>Highlight on Copy</name>
+    <vendor email="jenkinsh1@outlook.com" url="https://github.com/hazzajenko">hazzajenko</vendor>
 
     <depends>com.intellij.modules.platform</depends>
 
-    <resource-bundle>messages.MyBundle</resource-bundle>
-
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.hazzajenko.jetbrainshighlightoncopy.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-        <postStartupActivity implementation="com.github.hazzajenko.jetbrainshighlightoncopy.startup.MyProjectActivity" />
+        <!-- Plugin Settings -->
+        <applicationConfigurable
+                parentId="tools"
+                instance="com.github.hazzajenko.jetbrainshighlightoncopy.settings.HighlightOnCopyConfigurable"
+                id="com.github.hazzajenko.jetbrainshighlightoncopy.settings.HighlightOnCopyConfigurable"
+                displayName="Highlight on Copy"/>
+
+        <applicationService
+                serviceImplementation="com.github.hazzajenko.jetbrainshighlightoncopy.settings.HighlightOnCopySettings"/>
     </extensions>
+
+    <actions>
+        <!-- Main action for highlight and copy -->
+        <action id="HighlightOnCopy.Run"
+                class="com.github.hazzajenko.jetbrainshighlightoncopy.HighlightOnCopyAction"
+                text="Highlight and Copy"
+                description="Copy selection to clipboard and highlight it">
+            <add-to-group group-id="EditMenu" anchor="after" relative-to-action="$Copy"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl C"/>
+        </action>
+    </actions>
 </idea-plugin>
