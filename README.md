@@ -4,19 +4,6 @@
 [![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
 
-## Development Status
-- [x] Create a new [IntelliJ Platform Plugin Template][template] project.
-- [x] Adjust the [pluginGroup](./gradle.properties) and [pluginName](./gradle.properties), as well as the [id](./src/main/resources/META-INF/plugin.xml) and [sources package](./src/main/kotlin).
-- [x] Convert VSCode extension functionality to IntelliJ Platform API
-- [x] Implement copy and highlight functionality with multi-cursor support
-- [x] Add configurable settings (colors, timeout)
-- [x] Adjust the plugin description in `README`
-- [ ] Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html?from=IJPluginTemplate).
-- [ ] [Publish a plugin manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate) for the first time.
-- [ ] Set the `MARKETPLACE_ID` in the above README badges after publishing.
-- [ ] Set the [Plugin Signing](https://plugins.jetbrains.com/docs/intellij/plugin-signing.html?from=IJPluginTemplate) related [secrets](https://github.com/JetBrains/intellij-platform-plugin-template#environment-variables).
-- [ ] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html?from=IJPluginTemplate).
-
 <!-- Plugin description -->
 Highlights the text that was just copied to the clipboard with customizable colors and blinking effects.
 
@@ -29,7 +16,7 @@ Highlights the text that was just copied to the clipboard with customizable colo
 - 🔄 Works with ANY copy action - Ctrl+C, Edit menu, right-click copy, etc.
 - 🎨 Supports both standard (#RRGGBB) and alpha (#RRGGBBAA) hex colors
 
-Perfect for visual feedback when copying code, making it immediately clear what was just copied to the clipboard. Converted from a popular VSCode extension to bring the same functionality to JetBrains IDEs.
+Perfect for visual feedback when copying code, making it immediately clear what was just copied to the clipboard.
 
 **Usage:**
 - Copy text using any method (Ctrl+C, Edit menu, right-click) - copied text will blink
@@ -74,36 +61,16 @@ Perfect for visual feedback when copying code, making it immediately clear what 
 ./gradlew runIde
 ```
 
-### Key Implementation Details
-- **Copy Listener**: Listens for any copy action without overriding default behavior
-- **Multi-cursor Support**: Intelligently handles multiple selections, avoiding duplicates on same line
-- **Blinking Effect**: Configurable blinking with custom count and interval settings
-- **Highlighting**: Uses `MarkupModel.addRangeHighlighter()` with configurable `TextAttributes`
-- **Settings**: Persistent configuration using `PersistentStateComponent`
-- **Color Support**: Supports both 6-character (#RRGGBB) and 8-character (#RRGGBBAA) hex colors
-
-### API Mapping from VSCode Extension
-| VSCode API | IntelliJ Platform API |
-|------------|----------------------|
-| `vscode.commands.executeCommand("editor.action.clipboardCopyAction")` | `CopyPasteManagerEx.setContents()` |
-| `vscode.window.createTextEditorDecorationType()` | `MarkupModel.addRangeHighlighter()` |
-| `editor.setDecorations()` | `RangeHighlighter` with `TextAttributes` |
-| `vscode.workspace.getConfiguration()` | `PersistentStateComponent` |
-| `setTimeout()` | `java.util.Timer` |
-
----
-Plugin based on the [IntelliJ Platform Plugin Template][template].
-
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
 
 ## Features
 
 - 🎨 **Customizable highlighting**: Configure background and foreground colors
-- ⏱️ **Adjustable timeout**: Control how long the highlight stays visible
+- ✨ **Configurable blinking**: Control blink count and timing
 - 🎯 **Multi-cursor support**: Handles multiple selections intelligently
-- 📄 **Smart line copying**: Copies entire line when no text is selected
+- 📄 **Smart line copying**: Highlights entire line when no text is selected
 - ⚙️ **Easy configuration**: Simple settings panel in IDE preferences
+- 🔄 **Works with any copy method**: Ctrl+C, Edit menu, right-click copy
+- 🎨 **Alpha color support**: Use transparent colors with 8-character hex codes
 
 ## Installation
 
@@ -111,8 +78,8 @@ Plugin based on the [IntelliJ Platform Plugin Template][template].
 
 1. **Clone this repository**:
    ```bash
-   git clone https://github.com/yourusername/highlight-on-copy-plugin.git
-   cd highlight-on-copy-plugin
+   git clone https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy.git
+   cd Jetbrains-Highlight-on-Copy
    ```
 
 2. **Open in IntelliJ IDEA**:
@@ -163,22 +130,6 @@ The plugin works with all copy methods:
 
 ## Development
 
-### Project Structure
-
-```
-src/main/kotlin/com/github/hazzajenko/jetbrainshighlightoncopy/
-├── HighlightOnCopyAction.kt          # Legacy action (for tests)
-├── HighlightOnCopyListener.kt        # Main copy listener implementation
-└── settings/
-    ├── HighlightOnCopySettings.kt    # Settings service
-    └── HighlightOnCopyConfigurable.kt # Settings UI
-
-src/main/resources/META-INF/
-└── plugin.xml                       # Plugin configuration
-
-src/test/kotlin/
-└── HighlightOnCopyActionTest.kt     # Unit tests
-```
 
 ### Building
 
@@ -212,43 +163,6 @@ Test coverage includes:
 
 ### Key Implementation Details
 
-#### API Usage
-
-- **`AnActionListener`**: Listens for copy actions without overriding default behavior
-- **`MarkupModel.addRangeHighlighter()`**: Creates text highlighting
-- **`TextAttributes`**: Defines highlight styling with blinking effect
-- **`CaretModel`**: Manages cursor positions and selections
-- **`PersistentStateComponent`**: Stores user settings
-- **`Timer`**: Manages blinking intervals and cleanup
-
-#### Multi-cursor Handling
-
-The plugin intelligently handles multiple cursors by:
-1. Sorting selections by line and column
-2. Ignoring duplicate empty selections on the same line
-3. Copying entire lines for empty selections
-4. Joining multiple selections with newlines
-
-#### Highlight Management
-
-Highlights are:
-- Applied using high-priority layers (above selection layer) to be visible
-- Blink on/off based on configurable count and interval
-- Automatically removed after completing all blinks
-- Properly cleaned up on project disposal
-- Support transparency with 8-character hex colors (#RRGGBBAA)
-
-## Conversion from VSCode Extension
-
-This plugin was converted from a VSCode extension with the following mappings:
-
-| VSCode API | IntelliJ Platform API |
-|------------|----------------------|
-| `vscode.commands.executeCommand("editor.action.clipboardCopyAction")` | `CopyPasteManagerEx.setContents()` |
-| `vscode.window.createTextEditorDecorationType()` | `MarkupModel.addRangeHighlighter()` |
-| `editor.setDecorations()` | `RangeHighlighter` with `TextAttributes` |
-| `vscode.workspace.getConfiguration()` | `PersistentStateComponent` |
-| `setTimeout()` | `java.util.Timer` |
 
 ## Contributing
 
@@ -266,26 +180,21 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ### 1.0.0
 - Initial release
-- Copy listener instead of action override
-- Configurable blinking effect
-- Multi-cursor support
-- Configurable colors with alpha support
+- Configurable blinking effect when copying text
+- Multi-cursor support with intelligent handling
+- Customizable colors including alpha transparency
 - Blink count and interval settings
-- Works with any copy method
-- Comprehensive test suite
+- Works with any copy method (Ctrl+C, menu, right-click)
+- Smart line highlighting when no text is selected
 
 ## Support
 
 If you encounter any issues or have suggestions:
 
-1. Check the [Issues](https://github.com/yourusername/highlight-on-copy-plugin/issues) page
+1. Check the [Issues](https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/issues) page
 2. Create a new issue with:
   - IDE version
   - Plugin version
   - Steps to reproduce
   - Expected vs actual behavior
 
-## Related Projects
-
-- [Original VSCode Extension](https://github.com/original-vscode-extension) (if applicable)
-- [IntelliJ Platform Plugin SDK](https://plugins.jetbrains.com/docs/intellij/welcome.html)
