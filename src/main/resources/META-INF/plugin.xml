@@ -2,7 +2,46 @@
 <idea-plugin>
     <id>com.github.hazzajenko.jetbrainshighlightoncopy</id>
     <name>Highlight on Copy</name>
+    <version>1.0.0</version>
     <vendor email="jenkinsh1@outlook.com" url="https://github.com/hazzajenko">hazzajenko</vendor>
+
+    <description><![CDATA[
+    Highlights the text that was just copied to the clipboard with customizable colors and blinking effects.
+
+    <h3>Features</h3>
+    <ul>
+        <li>🎨 Highlights copied text with configurable background and foreground colors</li>
+        <li>✨ Configurable blinking effect with customizable blink count and interval</li>
+        <li>🎯 Multi-cursor support with intelligent selection handling</li>
+        <li>📄 Smart line copying when no text is selected (copies entire line)</li>
+        <li>⚙️ Easy configuration through IDE settings (Tools → Highlight on Copy)</li>
+        <li>🔄 Works with ANY copy action - Ctrl+C, Edit menu, right-click copy, etc.</li>
+        <li>🎨 Supports both standard (#RRGGBB) and alpha (#RRGGBBAA) hex colors</li>
+    </ul>
+
+    <h3>Usage</h3>
+    <ul>
+        <li>Copy text using any method (Ctrl+C, Edit menu, right-click) - copied text will blink</li>
+        <li>With no selection, copy action will highlight the entire line</li>
+        <li>Multiple cursors supported - all selections will be highlighted</li>
+        <li>Configure colors, blink count, and timing in Settings → Tools → Highlight on Copy</li>
+    </ul>
+
+    Perfect for visual feedback when copying code, making it immediately clear what was just copied to the clipboard.
+    ]]></description>
+
+    <change-notes><![CDATA[
+    <h3>1.0.0</h3>
+    <ul>
+        <li>Initial release</li>
+        <li>Copy listener instead of action override</li>
+        <li>Configurable blinking effect</li>
+        <li>Multi-cursor support</li>
+        <li>Configurable colors with alpha support</li>
+        <li>Blink count and interval settings</li>
+        <li>Works with any copy method</li>
+    </ul>
+    ]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
 
