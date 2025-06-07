@@ -26,7 +26,9 @@ class HighlightOnCopyConfigurable : Configurable {
 
         return settings.backgroundColor != component.backgroundColorHex ||
                 settings.foregroundColor != component.foregroundColorHex ||
-                settings.timeout != component.timeout
+                settings.timeout != component.timeout ||
+                settings.blinkCount != component.blinkCount ||
+                settings.blinkInterval != component.blinkInterval
     }
 
     override fun apply() {
@@ -36,6 +38,8 @@ class HighlightOnCopyConfigurable : Configurable {
         settings.backgroundColor = component.backgroundColorHex
         settings.foregroundColor = component.foregroundColorHex
         settings.timeout = component.timeout
+        settings.blinkCount = component.blinkCount
+        settings.blinkInterval = component.blinkInterval
     }
 
     override fun reset() {
@@ -45,6 +49,8 @@ class HighlightOnCopyConfigurable : Configurable {
         component.backgroundColorHex = settings.backgroundColor
         component.foregroundColorHex = settings.foregroundColor
         component.timeout = settings.timeout
+        component.blinkCount = settings.blinkCount
+        component.blinkInterval = settings.blinkInterval
     }
 
     override fun disposeUIResources() {
@@ -56,6 +62,8 @@ class HighlightOnCopyConfigurable : Configurable {
         private val backgroundColorField: JBTextField
         private val foregroundColorField: JBTextField
         private val timeoutSpinner: JSpinner
+        private val blinkCountSpinner: JSpinner
+        private val blinkIntervalSpinner: JSpinner
 
         var backgroundColorHex: String
             get() = backgroundColorField.text
@@ -75,10 +83,24 @@ class HighlightOnCopyConfigurable : Configurable {
                 timeoutSpinner.value = value
             }
 
+        var blinkCount: Int
+            get() = blinkCountSpinner.value as Int
+            set(value) {
+                blinkCountSpinner.value = value
+            }
+
+        var blinkInterval: Int
+            get() = blinkIntervalSpinner.value as Int
+            set(value) {
+                blinkIntervalSpinner.value = value
+            }
+
         init {
             backgroundColorField = JBTextField()
             foregroundColorField = JBTextField()
             timeoutSpinner = JSpinner(SpinnerNumberModel(1000, 100, 10000, 100))
+            blinkCountSpinner = JSpinner(SpinnerNumberModel(3, 1, 10, 1))
+            blinkIntervalSpinner = JSpinner(SpinnerNumberModel(150, 50, 1000, 25))
 
             // Set placeholder text to help users
             backgroundColorField.toolTipText = "Hex color code, e.g., #FFFF00 for yellow"
@@ -87,7 +109,9 @@ class HighlightOnCopyConfigurable : Configurable {
             panel = FormBuilder.createFormBuilder()
                 .addLabeledComponent(JBLabel("Background Color (hex):"), backgroundColorField, 1, false)
                 .addLabeledComponent(JBLabel("Foreground Color (hex, optional):"), foregroundColorField, 1, false)
-                .addLabeledComponent(JBLabel("Highlight Timeout (ms):"), timeoutSpinner, 1, false)
+                .addLabeledComponent(JBLabel("Number of Blinks:"), blinkCountSpinner, 1, false)
+                .addLabeledComponent(JBLabel("Blink Interval (ms):"), blinkIntervalSpinner, 1, false)
+                .addLabeledComponent(JBLabel("Highlight Timeout (ms, legacy):"), timeoutSpinner, 1, false)
                 .addComponent(JBLabel("Examples: #FFFF00 (yellow), #FF0000 (red), #00FF00 (green)"), 1)
                 .addComponentFillVertically(JPanel(), 0)
                 .panel

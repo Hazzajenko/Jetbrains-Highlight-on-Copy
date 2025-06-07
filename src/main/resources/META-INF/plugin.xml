@@ -16,16 +16,13 @@
 
         <applicationService
                 serviceImplementation="com.github.hazzajenko.jetbrainshighlightoncopy.settings.HighlightOnCopySettings"/>
-    </extensions>
 
-    <actions>
-        <!-- Main action for highlight and copy -->
-        <action id="HighlightOnCopy.Run"
-                class="com.github.hazzajenko.jetbrainshighlightoncopy.HighlightOnCopyAction"
-                text="Highlight and Copy"
-                description="Copy selection to clipboard and highlight it">
-            <add-to-group group-id="EditMenu" anchor="after" relative-to-action="$Copy"/>
-            <keyboard-shortcut keymap="$default" first-keystroke="ctrl C"/>
-        </action>
-    </actions>
+        <!-- Copy listener service -->
+        <projectService
+                serviceImplementation="com.github.hazzajenko.jetbrainshighlightoncopy.HighlightOnCopyListener"/>
+
+        <!-- Startup activity to register the copy listener -->
+        <postStartupActivity
+                implementation="com.github.hazzajenko.jetbrainshighlightoncopy.HighlightOnCopyStartupActivity"/>
+    </extensions>
 </idea-plugin>
