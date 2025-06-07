@@ -120,9 +120,9 @@ class HighlightOnCopyAction : AnAction() {
 
         // Create text attributes for highlight with higher priority styling
         val textAttributes = TextAttributes().apply {
-            backgroundColor = Color.decode(settings.backgroundColor)
+            backgroundColor = parseColor(settings.backgroundColor)
             foregroundColor = if (settings.foregroundColor.isNotEmpty()) {
-                Color.decode(settings.foregroundColor)
+                parseColor(settings.foregroundColor)
             } else null
             // Make it more visible by adding effects
             effectType = null
@@ -210,6 +210,27 @@ class HighlightOnCopyAction : AnAction() {
                     }
                 }
             }, 0, blinkInterval)
+        }
+    }
+
+    private fun parseColor(hexColor: String): Color {
+        return try {
+            if (hexColor.length == 9 && hexColor.startsWith("#")) {
+                // 8-character hex with alpha: #RRGGBBAA
+                val rgb = hexColor.substring(1, 7)
+                val alpha = hexColor.substring(7, 9)
+                val r = rgb.substring(0, 2).toInt(16)
+                val g = rgb.substring(2, 4).toInt(16)
+                val b = rgb.substring(4, 6).toInt(16)
+                val a = alpha.toInt(16)
+                Color(r, g, b, a)
+            } else {
+                // Standard 6-character hex or let Color.decode handle it
+                Color.decode(hexColor)
+            }
+        } catch (e: Exception) {
+            // Fallback to yellow if color parsing fails
+            Color.YELLOW
         }
     }
 }
