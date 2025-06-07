@@ -1,8 +1,9 @@
 # Highlight on Copy
 
 ![Build](https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
+[![Version](https://img.shields.io/jetbrains/plugin/v/27575-highlight-on-copy.svg)](https://plugins.jetbrains.com/plugin/27575-highlight-on-copy)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/27575-highlight-on-copy.svg)](https://plugins.jetbrains.com/plugin/27575-highlight-on-copy)
+[![Rating](https://img.shields.io/jetbrains/plugin/r/rating/27575-highlight-on-copy.svg)](https://plugins.jetbrains.com/plugin/27575-highlight-on-copy)
 
 <!-- Plugin description -->
 Highlights the text that was just copied to the clipboard with customizable colors and blinking effects.
@@ -34,9 +35,9 @@ Perfect for visual feedback when copying code, making it immediately clear what 
 
 - Using JetBrains Marketplace:
 
-  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
+  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/27575-highlight-on-copy) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
 
-  You can also download the [latest release](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID/versions) from JetBrains Marketplace and install it manually using
+  You can also download the [latest release](https://plugins.jetbrains.com/plugin/27575-highlight-on-copy/versions) from JetBrains Marketplace and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
 - Manually:
@@ -92,11 +93,13 @@ Perfect for visual feedback when copying code, making it immediately clear what 
    ```
    This will start a new IDE instance with your plugin loaded.
 
-### From JetBrains Marketplace (Once Published)
+### From JetBrains Marketplace
 
 1. Go to `File → Settings → Plugins` (or `IntelliJ IDEA → Preferences → Plugins` on macOS)
 2. Search for "Highlight on Copy"
 3. Click Install and restart the IDE
+
+Or install directly from the [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/27575-highlight-on-copy)
 
 ## Usage
 
