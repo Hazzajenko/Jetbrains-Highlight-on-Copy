@@ -1,6 +1,7 @@
 package com.github.hazzajenko.jetbrainshighlightoncopy
 
 import com.intellij.ide.CopyPasteManagerEx
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -40,6 +41,10 @@ class HighlightOnCopyAction : AnAction() {
 
         // Apply highlighting
         highlightSelections(editor, selections, settings, project)
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.BGT
     }
 
     override fun update(e: AnActionEvent) {
@@ -113,13 +118,19 @@ class HighlightOnCopyAction : AnAction() {
         val markupModel = editor.markupModel
         val highlighters = mutableListOf<RangeHighlighter>()
 
-        // Create text attributes
+        // Create text attributes for highlight with higher priority styling
         val textAttributes = TextAttributes().apply {
             backgroundColor = Color.decode(settings.backgroundColor)
             foregroundColor = if (settings.foregroundColor.isNotEmpty()) {
                 Color.decode(settings.foregroundColor)
             } else null
+            // Make it more visible by adding effects
+            effectType = null
+            fontType = Font.BOLD
         }
+
+        // Create empty text attributes for "off" state
+        val emptyTextAttributes = TextAttributes()
 
         // Add highlighters for each selection
         for (selection in selections) {
@@ -128,7 +139,7 @@ class HighlightOnCopyAction : AnAction() {
                     selection.startOffset,
                     selection.endOffset,
                     HighlighterLayer.ADDITIONAL_SYNTAX + 1, // High priority layer
-                    textAttributes,
+                    emptyTextAttributes, // Start with no highlight
                     HighlighterTargetArea.EXACT_RANGE
                 )
                 highlighters.add(highlighter)
@@ -138,13 +149,21 @@ class HighlightOnCopyAction : AnAction() {
             }
         }
 
-        // Remove highlights after timeout
+        // Create blinking effect
         if (highlighters.isNotEmpty()) {
             val timer = Timer()
-            timer.schedule(object : TimerTask() {
+            var isHighlighted = false
+            val blinkInterval = 100L // 100ms blink interval
+            val totalDuration = settings.timeout.toLong()
+            var elapsedTime = 0L
+
+            timer.scheduleAtFixedRate(object : TimerTask() {
                 override fun run() {
                     ApplicationManager.getApplication().invokeLater {
-                        if (!project.isDisposed) {
+                        if (!project.isDisposed && elapsedTime < totalDuration) {
+                            isHighlighted = !isHighlighted
+                            
+                            // Remove current highlighters
                             highlighters.forEach { highlighter ->
                                 try {
                                     markupModel.removeHighlighter(highlighter)
@@ -152,10 +171,45 @@ class HighlightOnCopyAction : AnAction() {
                                     // Highlighter might already be removed
                                 }
                             }
+                            highlighters.clear()
+
+                            // Re-add highlighters with new state if highlighted
+                            if (isHighlighted) {
+                                // Clear any existing selection to make our highlight visible
+                                editor.selectionModel.removeSelection()
+                                
+                                for (selection in selections) {
+                                    try {
+                                        val highlighter = markupModel.addRangeHighlighter(
+                                            selection.startOffset,
+                                            selection.endOffset,
+                                            HighlighterLayer.SELECTION + 1, // Higher than selection layer
+                                            textAttributes,
+                                            HighlighterTargetArea.EXACT_RANGE
+                                        )
+                                        highlighters.add(highlighter)
+                                    } catch (e: Exception) {
+                                        // Handle any potential issues with invalid ranges
+                                        continue
+                                    }
+                                }
+                            }
+                            
+                            elapsedTime += blinkInterval
+                        } else {
+                            // Final cleanup
+                            highlighters.forEach { highlighter ->
+                                try {
+                                    markupModel.removeHighlighter(highlighter)
+                                } catch (e: Exception) {
+                                    // Highlighter might already be removed
+                                }
+                            }
+                            timer.cancel()
                         }
                     }
                 }
-            }, settings.timeout.toLong())
+            }, 0, blinkInterval)
         }
     }
 }
