@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed an issue where text selections were not restored after the highlight animation finished.
+
 ## [1.0.0] - 2025-06-07
 
 ### Added

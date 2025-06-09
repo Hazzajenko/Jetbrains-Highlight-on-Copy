@@ -162,7 +162,7 @@ class HighlightOnCopyAction : AnAction() {
                     ApplicationManager.getApplication().invokeLater {
                         if (!project.isDisposed && elapsedTime < totalDuration) {
                             isHighlighted = !isHighlighted
-                            
+
                             // Remove current highlighters
                             highlighters.forEach { highlighter ->
                                 try {
@@ -177,7 +177,7 @@ class HighlightOnCopyAction : AnAction() {
                             if (isHighlighted) {
                                 // Clear any existing selection to make our highlight visible
                                 editor.selectionModel.removeSelection()
-                                
+
                                 for (selection in selections) {
                                     try {
                                         val highlighter = markupModel.addRangeHighlighter(
@@ -194,7 +194,7 @@ class HighlightOnCopyAction : AnAction() {
                                     }
                                 }
                             }
-                            
+
                             elapsedTime += blinkInterval
                         } else {
                             // Final cleanup
@@ -205,6 +205,22 @@ class HighlightOnCopyAction : AnAction() {
                                     // Highlighter might already be removed
                                 }
                             }
+
+                            editor.caretModel.removeSecondaryCarets()
+                            if (selections.isNotEmpty()) {
+                                // Restore the primary selection
+                                val firstSelection = selections.first()
+                                editor.selectionModel.setSelection(firstSelection.startOffset, firstSelection.endOffset)
+                                // Move the caret to the end of the selection, which is standard behavior
+                                editor.caretModel.moveToOffset(firstSelection.endOffset)
+
+                                // Restore any other selections as secondary carets
+                                selections.drop(1).forEach { range ->
+                                    val caret = editor.caretModel.addCaret(editor.offsetToLogicalPosition(range.endOffset), true)
+                                    caret?.setSelection(range.startOffset, range.endOffset)
+                                }
+                            }
+
                             timer.cancel()
                         }
                     }

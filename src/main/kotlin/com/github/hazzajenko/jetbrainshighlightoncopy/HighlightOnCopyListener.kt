@@ -27,25 +27,25 @@ class HighlightOnCopyListener : AnActionListener {
 
     override fun afterActionPerformed(action: AnAction, event: AnActionEvent, result: AnActionResult) {
         // Check if this was a copy action
-        if (action.javaClass.simpleName.contains("Copy") || 
+        if (action.javaClass.simpleName.contains("Copy") ||
             action.toString().contains("Copy") ||
             event.actionManager.getId(action) == "\$Copy") {
-            
+
             val editor = event.getData(CommonDataKeys.EDITOR) ?: return
             val project = event.getData(CommonDataKeys.PROJECT) ?: return
-            
+
             handleCopyAction(editor, project)
         }
     }
 
     private fun handleCopyAction(editor: Editor, project: Project) {
         val settings = HighlightOnCopySettings.getInstance()
-        
+
         // Get selections to highlight (handles multi-cursor and empty selections)
         val selections = getSelections(editor)
-        
+
         if (selections.isEmpty()) return
-        
+
         // Apply highlighting with blinking effect
         highlightSelections(editor, selections, settings, project)
     }
@@ -100,7 +100,6 @@ class HighlightOnCopyListener : AnActionListener {
         val markupModel = editor.markupModel
         val highlighters = mutableListOf<RangeHighlighter>()
 
-        // Create text attributes for highlight with higher priority styling
         val textAttributes = TextAttributes().apply {
             backgroundColor = parseColor(settings.backgroundColor)
             foregroundColor = if (settings.foregroundColor.isNotEmpty()) {
@@ -110,24 +109,8 @@ class HighlightOnCopyListener : AnActionListener {
             fontType = Font.BOLD
         }
 
-        // Add initial highlighters (empty)
-        for (selection in selections) {
-            try {
-                val highlighter = markupModel.addRangeHighlighter(
-                    selection.startOffset,
-                    selection.endOffset,
-                    HighlighterLayer.SELECTION + 1,
-                    TextAttributes(), // Start with no highlight
-                    HighlighterTargetArea.EXACT_RANGE
-                )
-                highlighters.add(highlighter)
-            } catch (e: Exception) {
-                continue
-            }
-        }
-
         // Create blinking effect based on blink count
-        if (highlighters.isNotEmpty()) {
+        if (selections.isNotEmpty()) {
             val timer = Timer()
             var isHighlighted = false
             var blinkCounter = 0
@@ -137,55 +120,79 @@ class HighlightOnCopyListener : AnActionListener {
             timer.scheduleAtFixedRate(object : TimerTask() {
                 override fun run() {
                     ApplicationManager.getApplication().invokeLater {
-                        if (!project.isDisposed && blinkCounter < maxBlinks) {
-                            isHighlighted = !isHighlighted
-                            
-                            // Remove current highlighters
-                            highlighters.forEach { highlighter ->
-                                try {
-                                    markupModel.removeHighlighter(highlighter)
-                                } catch (e: Exception) {
-                                    // Highlighter might already be removed
-                                }
-                            }
-                            highlighters.clear()
-
-                            // Re-add highlighters with new state if highlighted
-                            if (isHighlighted) {
-                                // Clear any existing selection to make our highlight visible
-                                editor.selectionModel.removeSelection()
-                                
-                                for (selection in selections) {
-                                    try {
-                                        val highlighter = markupModel.addRangeHighlighter(
-                                            selection.startOffset,
-                                            selection.endOffset,
-                                            HighlighterLayer.SELECTION + 1,
-                                            textAttributes,
-                                            HighlighterTargetArea.EXACT_RANGE
-                                        )
-                                        highlighters.add(highlighter)
-                                    } catch (e: Exception) {
-                                        continue
-                                    }
-                                }
-                            }
-                            
-                            blinkCounter++
-                        } else {
-                            // Final cleanup
-                            highlighters.forEach { highlighter ->
-                                try {
-                                    markupModel.removeHighlighter(highlighter)
-                                } catch (e: Exception) {
-                                    // Highlighter might already be removed
-                                }
-                            }
+                        if (project.isDisposed) {
                             timer.cancel()
+                            return@invokeLater
+                        }
+
+                        // 1. Toggle state and update highlighters
+                        isHighlighted = !isHighlighted
+
+                        // Always remove previous highlighters
+                        highlighters.forEach { highlighter ->
+                            try {
+                                markupModel.removeHighlighter(highlighter)
+                            } catch (e: Exception) {
+                                // Highlighter might already be removed
+                            }
+                        }
+                        highlighters.clear()
+
+                        if (isHighlighted) {
+                            // This is an "ON" tick. Clear selection and add colored highlighters.
+                            editor.selectionModel.removeSelection()
+                            for (selection in selections) {
+                                try {
+                                    val highlighter = markupModel.addRangeHighlighter(
+                                        selection.startOffset,
+                                        selection.endOffset,
+                                        HighlighterLayer.SELECTION + 1,
+                                        textAttributes,
+                                        HighlighterTargetArea.EXACT_RANGE
+                                    )
+                                    highlighters.add(highlighter)
+                                } catch (e: Exception) {
+                                    continue
+                                }
+                            }
+                        }
+                        // On an "OFF" tick, we do nothing, as highlighters are already cleared.
+
+                        // 2. Increment counter
+                        blinkCounter++
+
+                        // 3. Check if the animation is complete
+                        if (blinkCounter >= maxBlinks) {
+                            // Animation finished. The last state was "OFF".
+                            // Highlighters are already gone.
+                            timer.cancel()
+
+                            // Restore the selection immediately.
+                            restoreSelection(editor, selections)
                         }
                     }
                 }
             }, 0, blinkInterval)
+        }
+    }
+
+    private fun restoreSelection(editor: Editor, selections: List<TextRange>) {
+        // Ensure this runs on the UI thread
+        ApplicationManager.getApplication().invokeLater {
+            editor.caretModel.removeSecondaryCarets()
+            if (selections.isNotEmpty()) {
+                // Restore the primary selection
+                val firstSelection = selections.first()
+                editor.selectionModel.setSelection(firstSelection.startOffset, firstSelection.endOffset)
+                // Move the caret to the end of the selection, which is standard behavior
+                editor.caretModel.moveToOffset(firstSelection.endOffset)
+
+                // Restore any other selections as secondary carets
+                selections.drop(1).forEach { range ->
+                    val caret = editor.caretModel.addCaret(editor.offsetToLogicalPosition(range.endOffset), true)
+                    caret?.setSelection(range.startOffset, range.endOffset)
+                }
+            }
         }
     }
 
@@ -222,7 +229,7 @@ class HighlightOnCopyStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
         val actionManager = ActionManager.getInstance()
         val listener = HighlightOnCopyListener.getInstance(project)
-        
+
         // Register the listener
         actionManager.addAnActionListener(listener, project)
     }
