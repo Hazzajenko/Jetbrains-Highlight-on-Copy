@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Migrated from deprecated `addAnActionListener` to declarative listener registration using message bus infrastructure for better performance and future compatibility
+
 ### Fixed
 
 - Fixed an issue where text selections were not restored after the highlight animation finished.

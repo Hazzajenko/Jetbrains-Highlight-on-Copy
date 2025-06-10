@@ -1,6 +1,5 @@
 package com.github.hazzajenko.jetbrainshighlightoncopy
 
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionResult
@@ -14,7 +13,6 @@ import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.TextRange
 import com.github.hazzajenko.jetbrainshighlightoncopy.settings.HighlightOnCopySettings
 import java.awt.Color
@@ -224,13 +222,3 @@ class HighlightOnCopyListener : AnActionListener {
     }
 }
 
-// Project startup activity to register the listener
-class HighlightOnCopyStartupActivity : ProjectActivity {
-    override suspend fun execute(project: Project) {
-        val actionManager = ActionManager.getInstance()
-        val listener = HighlightOnCopyListener.getInstance(project)
-
-        // Register the listener
-        actionManager.addAnActionListener(listener, project)
-    }
-}

@@ -59,9 +59,11 @@
         <!-- Copy listener service -->
         <projectService
                 serviceImplementation="com.github.hazzajenko.jetbrainshighlightoncopy.HighlightOnCopyListener"/>
-
-        <!-- Startup activity to register the copy listener -->
-        <postStartupActivity
-                implementation="com.github.hazzajenko.jetbrainshighlightoncopy.HighlightOnCopyStartupActivity"/>
     </extensions>
+
+    <!-- Declarative listener registration -->
+    <projectListeners>
+        <listener class="com.github.hazzajenko.jetbrainshighlightoncopy.HighlightOnCopyListener"
+                  topic="com.intellij.openapi.actionSystem.ex.AnActionListener"/>
+    </projectListeners>
 </idea-plugin>
