@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- Comprehensive unit test suite covering all core functionality
+- Tests for color parsing with various hex formats including edge cases
+- Tests for settings persistence and state management
+- Tests for UI configuration components and lifecycle
+
 ### Changed
 
 - Migrated from deprecated `addAnActionListener` to declarative listener registration using message bus infrastructure for better performance and future compatibility
@@ -12,6 +19,10 @@
 
 - Fixed an issue where text selections were not restored after the highlight animation finished.
 - Fixed a bug where copying a line with no selection would cause the entire line to become selected after the highlight.
+
+### Removed
+
+- Removed deprecated HighlightOnCopyAction and HighlightOnCopyActionTest as its not needed anymore.
 
 ## [1.0.0] - 2025-06-07
 
