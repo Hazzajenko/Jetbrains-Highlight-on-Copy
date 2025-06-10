@@ -11,6 +11,7 @@
 ### Fixed
 
 - Fixed an issue where text selections were not restored after the highlight animation finished.
+- Fixed a bug where copying a line with no selection would cause the entire line to become selected after the highlight.
 
 ## [1.0.0] - 2025-06-07
 

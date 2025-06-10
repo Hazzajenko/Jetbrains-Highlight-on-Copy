@@ -23,35 +23,62 @@ import kotlin.collections.ArrayList
 @Service(Service.Level.PROJECT)
 class HighlightOnCopyListener : AnActionListener {
 
-    override fun afterActionPerformed(action: AnAction, event: AnActionEvent, result: AnActionResult) {
-        // Check if this was a copy action
-        if (action.javaClass.simpleName.contains("Copy") ||
-            action.toString().contains("Copy") ||
-            event.actionManager.getId(action) == "\$Copy") {
+    // Data class to hold selection info, including whether it was a real selection
+    private data class HighlightInfo(val range: TextRange, val wasOriginalSelection: Boolean)
 
+    // Use a WeakHashMap to store the state before the action runs.
+    // This prevents memory leaks if an editor is closed.
+    private val preActionSelections = WeakHashMap<Editor, List<HighlightInfo>>()
+
+    /**
+     * Captures the editor's selection state *before* the copy action modifies it.
+     */
+    override fun beforeActionPerformed(action: AnAction, event: AnActionEvent) {
+        if (isCopyAction(action, event)) {
             val editor = event.getData(CommonDataKeys.EDITOR) ?: return
-            val project = event.getData(CommonDataKeys.PROJECT) ?: return
-
-            handleCopyAction(editor, project)
+            // Get the selection state now and store it.
+            val selections = getSelections(editor)
+            if (selections.isNotEmpty()) {
+                preActionSelections[editor] = selections
+            }
         }
     }
 
-    private fun handleCopyAction(editor: Editor, project: Project) {
+    /**
+     * After the action, retrieves the pre-captured state and starts the highlight.
+     */
+    override fun afterActionPerformed(action: AnAction, event: AnActionEvent, result: AnActionResult) {
+        if (isCopyAction(action, event)) {
+            val editor = event.getData(CommonDataKeys.EDITOR) ?: return
+            val project = event.getData(CommonDataKeys.PROJECT) ?: return
+
+            // Retrieve and remove the state we captured before the action.
+            val selections = preActionSelections.remove(editor) ?: return
+
+            // Now, trigger the highlight using the original, unmodified selection state.
+            handleCopyAction(editor, project, selections)
+        }
+    }
+
+    private fun isCopyAction(action: AnAction, event: AnActionEvent): Boolean {
+        val actionId = event.actionManager.getId(action)
+        return actionId == "\$Copy" ||
+                action.javaClass.simpleName.contains("Copy", ignoreCase = true) ||
+                action.toString().contains("Copy", ignoreCase = true)
+    }
+
+    private fun handleCopyAction(editor: Editor, project: Project, selections: List<HighlightInfo>) {
         val settings = HighlightOnCopySettings.getInstance()
-
-        // Get selections to highlight (handles multi-cursor and empty selections)
-        val selections = getSelections(editor)
-
         if (selections.isEmpty()) return
 
         // Apply highlighting with blinking effect
         highlightSelections(editor, selections, settings, project)
     }
 
-    private fun getSelections(editor: Editor): List<TextRange> {
+    private fun getSelections(editor: Editor): List<HighlightInfo> {
         val caretModel = editor.caretModel
         val document = editor.document
-        val selections = mutableListOf<TextRange>()
+        val selections = mutableListOf<HighlightInfo>()
         var lastSelectionLine = -1
 
         // Sort carets by line and character position
@@ -75,13 +102,13 @@ class HighlightOnCopyListener : AnActionListener {
 
             if (caret.hasSelection()) {
                 // Use the actual selection
-                selections.add(TextRange(caret.selectionStart, caret.selectionEnd))
+                selections.add(HighlightInfo(TextRange(caret.selectionStart, caret.selectionEnd), true))
             } else {
                 // For empty selections, copy the entire line (like VSCode behavior)
                 if (currentLine < document.lineCount) {
                     val lineStartOffset = document.getLineStartOffset(currentLine)
                     val lineEndOffset = document.getLineEndOffset(currentLine)
-                    selections.add(TextRange(lineStartOffset, lineEndOffset))
+                    selections.add(HighlightInfo(TextRange(lineStartOffset, lineEndOffset), false))
                 }
             }
         }
@@ -91,7 +118,7 @@ class HighlightOnCopyListener : AnActionListener {
 
     private fun highlightSelections(
         editor: Editor,
-        selections: List<TextRange>,
+        selections: List<HighlightInfo>,
         settings: HighlightOnCopySettings,
         project: Project
     ) {
@@ -107,7 +134,6 @@ class HighlightOnCopyListener : AnActionListener {
             fontType = Font.BOLD
         }
 
-        // Create blinking effect based on blink count
         if (selections.isNotEmpty()) {
             val timer = Timer()
             var isHighlighted = false
@@ -123,10 +149,8 @@ class HighlightOnCopyListener : AnActionListener {
                             return@invokeLater
                         }
 
-                        // 1. Toggle state and update highlighters
                         isHighlighted = !isHighlighted
 
-                        // Always remove previous highlighters
                         highlighters.forEach { highlighter ->
                             try {
                                 markupModel.removeHighlighter(highlighter)
@@ -137,13 +161,11 @@ class HighlightOnCopyListener : AnActionListener {
                         highlighters.clear()
 
                         if (isHighlighted) {
-                            // This is an "ON" tick. Clear selection and add colored highlighters.
-                            editor.selectionModel.removeSelection()
-                            for (selection in selections) {
+                            for (selectionInfo in selections) {
                                 try {
                                     val highlighter = markupModel.addRangeHighlighter(
-                                        selection.startOffset,
-                                        selection.endOffset,
+                                        selectionInfo.range.startOffset,
+                                        selectionInfo.range.endOffset,
                                         HighlighterLayer.SELECTION + 1,
                                         textAttributes,
                                         HighlighterTargetArea.EXACT_RANGE
@@ -154,18 +176,11 @@ class HighlightOnCopyListener : AnActionListener {
                                 }
                             }
                         }
-                        // On an "OFF" tick, we do nothing, as highlighters are already cleared.
 
-                        // 2. Increment counter
                         blinkCounter++
 
-                        // 3. Check if the animation is complete
                         if (blinkCounter >= maxBlinks) {
-                            // Animation finished. The last state was "OFF".
-                            // Highlighters are already gone.
                             timer.cancel()
-
-                            // Restore the selection immediately.
                             restoreSelection(editor, selections)
                         }
                     }
@@ -174,21 +189,30 @@ class HighlightOnCopyListener : AnActionListener {
         }
     }
 
-    private fun restoreSelection(editor: Editor, selections: List<TextRange>) {
-        // Ensure this runs on the UI thread
+    private fun restoreSelection(editor: Editor, highlightInfos: List<HighlightInfo>) {
         ApplicationManager.getApplication().invokeLater {
+            if (editor.isDisposed) return@invokeLater
+
             editor.caretModel.removeSecondaryCarets()
-            if (selections.isNotEmpty()) {
-                // Restore the primary selection
-                val firstSelection = selections.first()
-                editor.selectionModel.setSelection(firstSelection.startOffset, firstSelection.endOffset)
-                // Move the caret to the end of the selection, which is standard behavior
-                editor.caretModel.moveToOffset(firstSelection.endOffset)
+            if (highlightInfos.isNotEmpty()) {
+                val firstInfo = highlightInfos.first()
+                if (firstInfo.wasOriginalSelection) {
+                    // It was a real selection, so restore it.
+                    editor.selectionModel.setSelection(firstInfo.range.startOffset, firstInfo.range.endOffset)
+                    editor.caretModel.moveToOffset(firstInfo.range.endOffset)
+                } else {
+                    // It was a line copy. The default action may have moved the caret.
+                    // We must NOT create a selection. Just ensure the primary caret has none.
+                    editor.caretModel.primaryCaret.removeSelection()
+                }
 
                 // Restore any other selections as secondary carets
-                selections.drop(1).forEach { range ->
-                    val caret = editor.caretModel.addCaret(editor.offsetToLogicalPosition(range.endOffset), true)
-                    caret?.setSelection(range.startOffset, range.endOffset)
+                highlightInfos.drop(1).forEach { info ->
+                    // Place the caret at the end of the range, which is standard.
+                    val newCaret = editor.caretModel.addCaret(editor.offsetToLogicalPosition(info.range.endOffset), true)
+                    if (info.wasOriginalSelection) {
+                        newCaret?.setSelection(info.range.startOffset, info.range.endOffset)
+                    }
                 }
             }
         }
@@ -197,7 +221,6 @@ class HighlightOnCopyListener : AnActionListener {
     private fun parseColor(hexColor: String): Color {
         return try {
             if (hexColor.length == 9 && hexColor.startsWith("#")) {
-                // 8-character hex with alpha: #RRGGBBAA
                 val rgb = hexColor.substring(1, 7)
                 val alpha = hexColor.substring(7, 9)
                 val r = rgb.substring(0, 2).toInt(16)
@@ -206,11 +229,9 @@ class HighlightOnCopyListener : AnActionListener {
                 val a = alpha.toInt(16)
                 Color(r, g, b, a)
             } else {
-                // Standard 6-character hex or let Color.decode handle it
                 Color.decode(hexColor)
             }
         } catch (e: Exception) {
-            // Fallback to yellow if color parsing fails
             Color.YELLOW
         }
     }
@@ -221,4 +242,3 @@ class HighlightOnCopyListener : AnActionListener {
         }
     }
 }
-

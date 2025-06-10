@@ -25,6 +25,9 @@ import kotlin.collections.ArrayList
 
 class HighlightOnCopyAction : AnAction() {
 
+    // Data class to hold selection info
+    private data class HighlightInfo(val range: TextRange, val wasOriginalSelection: Boolean)
+
     override fun actionPerformed(e: AnActionEvent) {
         val editor = e.getData(CommonDataKeys.EDITOR) ?: return
         val project = e.getData(CommonDataKeys.PROJECT) ?: return
@@ -36,8 +39,11 @@ class HighlightOnCopyAction : AnAction() {
 
         if (selections.isEmpty()) return
 
+        // Extract TextRanges for the copy operation
+        val textRanges = selections.map { it.range }
+
         // Copy to clipboard (this will handle the actual copying)
-        performCopy(editor, selections)
+        performCopy(editor, textRanges)
 
         // Apply highlighting
         highlightSelections(editor, selections, settings, project)
@@ -52,10 +58,10 @@ class HighlightOnCopyAction : AnAction() {
         e.presentation.isEnabledAndVisible = editor != null
     }
 
-    private fun getSelections(editor: Editor): List<TextRange> {
+    private fun getSelections(editor: Editor): List<HighlightInfo> {
         val caretModel = editor.caretModel
         val document = editor.document
-        val selections = mutableListOf<TextRange>()
+        val selections = mutableListOf<HighlightInfo>()
         var lastSelectionLine = -1
 
         // Sort carets by line and character position
@@ -79,13 +85,13 @@ class HighlightOnCopyAction : AnAction() {
 
             if (caret.hasSelection()) {
                 // Use the actual selection
-                selections.add(TextRange(caret.selectionStart, caret.selectionEnd))
+                selections.add(HighlightInfo(TextRange(caret.selectionStart, caret.selectionEnd), true))
             } else {
-                // For empty selections, copy the entire line (like VSCode behavior)
+                // For empty selections, copy the entire line
                 if (currentLine < document.lineCount) {
                     val lineStartOffset = document.getLineStartOffset(currentLine)
                     val lineEndOffset = document.getLineEndOffset(currentLine)
-                    selections.add(TextRange(lineStartOffset, lineEndOffset))
+                    selections.add(HighlightInfo(TextRange(lineStartOffset, lineEndOffset), false))
                 }
             }
         }
@@ -111,7 +117,7 @@ class HighlightOnCopyAction : AnAction() {
 
     private fun highlightSelections(
         editor: Editor,
-        selections: List<TextRange>,
+        selections: List<HighlightInfo>,
         settings: HighlightOnCopySettings,
         project: Project
     ) {
@@ -133,11 +139,11 @@ class HighlightOnCopyAction : AnAction() {
         val emptyTextAttributes = TextAttributes()
 
         // Add highlighters for each selection
-        for (selection in selections) {
+        for (selectionInfo in selections) {
             try {
                 val highlighter = markupModel.addRangeHighlighter(
-                    selection.startOffset,
-                    selection.endOffset,
+                    selectionInfo.range.startOffset,
+                    selectionInfo.range.endOffset,
                     HighlighterLayer.ADDITIONAL_SYNTAX + 1, // High priority layer
                     emptyTextAttributes, // Start with no highlight
                     HighlighterTargetArea.EXACT_RANGE
@@ -175,14 +181,12 @@ class HighlightOnCopyAction : AnAction() {
 
                             // Re-add highlighters with new state if highlighted
                             if (isHighlighted) {
-                                // Clear any existing selection to make our highlight visible
-                                editor.selectionModel.removeSelection()
-
-                                for (selection in selections) {
+                                // DO NOT clear selection; the highlighter layer is sufficient
+                                for (selectionInfo in selections) {
                                     try {
                                         val highlighter = markupModel.addRangeHighlighter(
-                                            selection.startOffset,
-                                            selection.endOffset,
+                                            selectionInfo.range.startOffset,
+                                            selectionInfo.range.endOffset,
                                             HighlighterLayer.SELECTION + 1, // Higher than selection layer
                                             textAttributes,
                                             HighlighterTargetArea.EXACT_RANGE
@@ -208,16 +212,22 @@ class HighlightOnCopyAction : AnAction() {
 
                             editor.caretModel.removeSecondaryCarets()
                             if (selections.isNotEmpty()) {
-                                // Restore the primary selection
-                                val firstSelection = selections.first()
-                                editor.selectionModel.setSelection(firstSelection.startOffset, firstSelection.endOffset)
-                                // Move the caret to the end of the selection, which is standard behavior
-                                editor.caretModel.moveToOffset(firstSelection.endOffset)
+                                val firstInfo = selections.first()
+                                if (firstInfo.wasOriginalSelection) {
+                                    // Restore the primary selection
+                                    editor.selectionModel.setSelection(firstInfo.range.startOffset, firstInfo.range.endOffset)
+                                    editor.caretModel.moveToOffset(firstInfo.range.endOffset)
+                                } else {
+                                    // It was a line copy, so do not create a selection
+                                    editor.caretModel.primaryCaret.removeSelection()
+                                }
 
                                 // Restore any other selections as secondary carets
-                                selections.drop(1).forEach { range ->
-                                    val caret = editor.caretModel.addCaret(editor.offsetToLogicalPosition(range.endOffset), true)
-                                    caret?.setSelection(range.startOffset, range.endOffset)
+                                selections.drop(1).forEach { info ->
+                                    val caret = editor.caretModel.addCaret(editor.offsetToLogicalPosition(info.range.endOffset), true)
+                                    if (info.wasOriginalSelection) {
+                                        caret?.setSelection(info.range.startOffset, info.range.endOffset)
+                                    }
                                 }
                             }
 
