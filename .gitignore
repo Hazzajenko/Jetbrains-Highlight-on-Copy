@@ -6,3 +6,6 @@ build
 *.md
 !README.md
 *.salive
+chain.crt
+private.pem
+.env
