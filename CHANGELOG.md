@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-06-10
+
 ### Added
 
 - Comprehensive unit test suite covering all core functionality
@@ -37,5 +39,6 @@
 - Compatibility with all copy methods (Ctrl+C, Edit menu, right-click copy)
 - Easy configuration through IDE settings panel at `Tools → Highlight on Copy`
 
-[Unreleased]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/releases/tag/v1.0.0
+[Unreleased]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/commits/v1.0.0
