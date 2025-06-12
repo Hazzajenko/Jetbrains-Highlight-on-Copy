@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-06-10
+
 ### Added
 
 - Comprehensive unit test suite covering all core functionality

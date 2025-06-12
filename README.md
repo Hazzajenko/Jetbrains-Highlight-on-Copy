@@ -72,7 +72,6 @@ Perfect for visual feedback when copying code, making it immediately clear what 
 ./gradlew runIde
 ```
 
-
 ## Features
 
 - 🎨 **Customizable highlighting**: Configure background and foreground colors
@@ -88,20 +87,20 @@ Perfect for visual feedback when copying code, making it immediately clear what 
 ### From Source (Development)
 
 1. **Clone this repository**:
-   ```bash
-   git clone https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy.git
-   cd Jetbrains-Highlight-on-Copy
-   ```
+    ```bash
+    git clone https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy.git
+    cd Jetbrains-Highlight-on-Copy
+    ```
 
 2. **Open in IntelliJ IDEA**:
-  - `File → Open` and select the project directory
-  - Wait for Gradle to sync
+    - `File → Open` and select the project directory
+    - Wait for Gradle to sync
 
 3. **Build and run**:
-   ```bash
-   ./gradlew runIde
-   ```
-   This will start a new IDE instance with your plugin loaded.
+    ```bash
+    ./gradlew runIde
+    ```
+    This will start a new IDE instance with your plugin loaded.
 
 ### From JetBrains Marketplace
 
@@ -128,12 +127,14 @@ The plugin listens for any copy action and provides visual feedback. When you co
 
 1. Go to `File → Settings → Tools → Highlight on Copy` (or `IntelliJ IDEA → Preferences → Tools → Highlight on Copy` on macOS)
 
+    ![Plugin Settings](settings.jpg)
+
 2. **Available settings**:
-  - **Background Color**: Color of the highlight background (default: light red #E66159)
-  - **Foreground Color**: Text color during highlight (leave empty for no change)
-  - **Number of Blinks**: How many times the text blinks (default: 1)
-  - **Blink Interval**: Time between blinks in milliseconds (default: 150ms)
-  - **Highlight Timeout**: Legacy setting for backwards compatibility (default: 1000ms)
+    - **Background Color**: Color of the highlight background (default: light red #E66159)
+    - **Foreground Color**: Text color during highlight (leave empty for no change)
+    - **Number of Blinks**: How many times the text blinks (default: 1)
+    - **Blink Interval**: Time between blinks in milliseconds (default: 150ms)
+    - **Highlight Timeout**: Legacy setting for backwards compatibility (default: 1000ms)
 
 ### Copy Methods
 
@@ -144,7 +145,6 @@ The plugin works with all copy methods:
 - Any other copy action in the IDE
 
 ## Development
-
 
 ### Building
 
@@ -178,7 +178,6 @@ Test coverage includes:
 
 ### Key Implementation Details
 
-
 ## Contributing
 
 1. Fork the repository
@@ -193,14 +192,40 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+### 1.0.1
+
+#### Added
+
+- Comprehensive unit test suite covering all core functionality
+- Tests for color parsing with various hex formats including edge cases
+- Tests for settings persistence and state management
+- Tests for UI configuration components and lifecycle
+
+#### Changed
+
+- Migrated from deprecated `addAnActionListener` to declarative listener registration using message bus infrastructure for better performance and future compatibility
+
+#### Fixed
+
+- Fixed an issue where text selections were not restored after the highlight animation finished.
+- Fixed a bug where copying a line with no selection would cause the entire line to become selected after the highlight.
+
+#### Removed
+
+- Removed deprecated HighlightOnCopyAction and HighlightOnCopyActionTest as its not needed anymore.
+
 ### 1.0.0
-- Initial release
-- Configurable blinking effect when copying text
-- Multi-cursor support with intelligent handling
-- Customizable colors including alpha transparency
-- Blink count and interval settings
-- Works with any copy method (Ctrl+C, menu, right-click)
-- Smart line highlighting when no text is selected
+
+#### Added
+
+- Visual feedback when copying text to clipboard with customizable blinking effect
+- Multi-cursor support with intelligent selection handling
+- Smart line copying - highlights entire line when no text is selected
+- Configurable background and foreground colors for highlights
+- Support for both standard (#RRGGBB) and alpha (#RRGGBBAA) hex color formats
+- Adjustable blink count and timing interval settings
+- Compatibility with all copy methods (Ctrl+C, Edit menu, right-click copy)
+- Easy configuration through IDE settings panel at `Tools → Highlight on Copy`
 
 ## Support
 
@@ -208,8 +233,7 @@ If you encounter any issues or have suggestions:
 
 1. Check the [Issues](https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/issues) page
 2. Create a new issue with:
-  - IDE version
-  - Plugin version
-  - Steps to reproduce
-  - Expected vs actual behavior
-
+- IDE version
+- Plugin version
+- Steps to reproduce
+- Expected vs actual behavior
