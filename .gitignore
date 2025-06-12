@@ -9,3 +9,5 @@ build
 chain.crt
 private.pem
 .env
+HighlightOnCopyDemo
+demo

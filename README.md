@@ -8,6 +8,16 @@
 <!-- Plugin description -->
 Highlights the text that was just copied to the clipboard with customizable colors and blinking effects.
 
+## Demo
+
+![Highlight on Copy Demo](demo.gif)
+
+See the plugin in action - when you copy text, it highlights with a customizable blinking effect:
+
+| Before Copy | After Copy (Highlighted) |
+|-------------|-------------------------|
+| ![Before Copy](image1.jpg) | ![After Copy](image2.jpg) |
+
 **Features:**
 - 🎨 Highlights copied text with configurable background and foreground colors
 - ✨ Configurable blinking effect with customizable blink count and interval
@@ -111,6 +121,8 @@ The plugin listens for any copy action and provides visual feedback. When you co
 2. **With no selection**: Highlights the entire current line
 3. **With multiple cursors**: Highlights all selections
 4. **Works with any copy method**: Ctrl+C, Edit menu, right-click copy, etc.
+
+![Usage Demo](demo.gif)
 
 ### Configuration
 
