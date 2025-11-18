@@ -8,7 +8,7 @@
 
 - Updated IntelliJ Platform from 2024.2.5 to 2025.2.3 for compatibility with latest JetBrains IDE releases
 - Updated Kotlin from 2.1.21 to 2.2.21
-- Updated IntelliJ Platform Gradle Plugin from 2.6.0 to 2.10.2
+- Updated IntelliJ Platform Gradle Plugin from 2.6.0 to 2.10.4
 - Updated Kotlinx Kover from 0.9.1 to 0.9.3
 - Updated Gradle Changelog Plugin from 2.2.1 to 2.4.0
 - Updated Qodana from 2025.1.1 to 2025.2.1
