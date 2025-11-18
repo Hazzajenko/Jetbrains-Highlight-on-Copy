@@ -4,6 +4,21 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Updated IntelliJ Platform from 2024.2.5 to 2025.2.3 for compatibility with latest JetBrains IDE releases
+- Updated Kotlin from 2.1.21 to 2.2.21
+- Updated IntelliJ Platform Gradle Plugin from 2.6.0 to 2.10.2
+- Updated Kotlinx Kover from 0.9.1 to 0.9.3
+- Updated Gradle Changelog Plugin from 2.2.1 to 2.4.0
+- Updated Qodana from 2025.1.1 to 2025.2.1
+- Updated GitHub Actions workflows:
+  - actions/checkout from 4 to 5
+  - actions/setup-java from 4 to 5
+  - gradle/actions from 4 to 5
+  - actions/upload-artifact from 4 to 5
+  - JetBrains/qodana-action from 2025.1 to 2025.2
+
 ## [1.0.1] - 2025-06-10
 
 ### Added
