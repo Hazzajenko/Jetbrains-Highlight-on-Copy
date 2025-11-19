@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.0.2] - 2025-11-19
+
 ### Changed
 
 - Updated IntelliJ Platform from 2024.2.5 to 2025.2.3 for compatibility with latest JetBrains IDE releases
@@ -54,5 +56,7 @@
 - Compatibility with all copy methods (Ctrl+C, Edit menu, right-click copy)
 - Easy configuration through IDE settings panel at `Tools → Highlight on Copy`
 
-[Unreleased]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/releases/tag/v1.0.0
+[Unreleased]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/commits/v1.0.0
