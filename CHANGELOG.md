@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Extended IDE compatibility to support IntelliJ Platform version 253.* (2025.3 releases)
+
 ## [1.0.2] - 2025-11-19
 
 ### Changed
