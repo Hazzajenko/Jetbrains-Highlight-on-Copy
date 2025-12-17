@@ -16,9 +16,8 @@ class HighlightOnCopySettings : PersistentStateComponent<HighlightOnCopySettings
 
     var backgroundColor: String = "#E66159"  // Light red
     var foregroundColor: String = ""         // Empty means no foreground color change
-    var timeout: Int = 1000                  // 1 second timeout (default) - kept for backwards compatibility
-    var blinkCount: Int = 1                  // Number of blinks (default)
-    var blinkInterval: Int = 150             // Blink interval in milliseconds (default)
+    var blinkCount: Int = 1                  // Number of blinks
+    var blinkInterval: Int = 150             // Blink interval in milliseconds
 
     override fun getState(): HighlightOnCopySettings = this
 
