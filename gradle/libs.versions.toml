@@ -2,6 +2,7 @@
 # libraries
 junit = "4.13.2"
 opentest4j = "1.3.0"
+coroutines = "1.8.1"
 
 # plugins
 changelog = "2.4.0"
@@ -13,6 +14,7 @@ qodana = "2025.2.1"
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "opentest4j" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }

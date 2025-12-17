@@ -33,6 +33,7 @@ repositories {
 dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.opentest4j)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
@@ -153,4 +154,18 @@ intellijPlatformTesting {
             }
         }
     }
+
+    testIde {
+        register("testInIdea") {
+            type = org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdeaCommunity
+            version = "2025.2.5"
+            useInstaller = false
+        }
+    }
+}
+
+// Make "test" task run IDEA tests by default
+tasks.named("test") {
+    dependsOn("testInIdea")
+    enabled = false
 }
