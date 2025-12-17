@@ -56,15 +56,12 @@ https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 
         <applicationService
             serviceImplementation="com.github.hazzajenko.jetbrainshighlightoncopy.settings.HighlightOnCopySettings" />
-
-        <!-- Copy listener service -->
-        <projectService
-            serviceImplementation="com.github.hazzajenko.jetbrainshighlightoncopy.HighlightOnCopyListener" />
     </extensions>
 
     <!-- Declarative listener registration -->
     <projectListeners>
         <listener class="com.github.hazzajenko.jetbrainshighlightoncopy.HighlightOnCopyListener"
-            topic="com.intellij.openapi.actionSystem.ex.AnActionListener" />
+            topic="com.intellij.openapi.actionSystem.ex.AnActionListener"
+            activeInHeadlessMode="false" />
     </projectListeners>
 </idea-plugin>
