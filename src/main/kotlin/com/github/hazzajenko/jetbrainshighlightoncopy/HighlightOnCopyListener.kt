@@ -5,8 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionResult
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.ex.AnActionListener
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.Service
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.HighlighterTargetArea
@@ -15,13 +14,19 @@ import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.github.hazzajenko.jetbrainshighlightoncopy.settings.HighlightOnCopySettings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.awt.Color
 import java.awt.Font
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.WeakHashMap
 
-@Service(Service.Level.PROJECT)
-class HighlightOnCopyListener : AnActionListener {
+class HighlightOnCopyListener(
+    private val project: Project,
+    private val scope: CoroutineScope
+) : AnActionListener {
 
     // Data class to hold selection info, including whether it was a real selection
     private data class HighlightInfo(val range: TextRange, val wasOriginalSelection: Boolean)
@@ -50,13 +55,12 @@ class HighlightOnCopyListener : AnActionListener {
     override fun afterActionPerformed(action: AnAction, event: AnActionEvent, result: AnActionResult) {
         if (isCopyAction(action, event)) {
             val editor = event.getData(CommonDataKeys.EDITOR) ?: return
-            val project = event.getData(CommonDataKeys.PROJECT) ?: return
 
             // Retrieve and remove the state we captured before the action.
             val selections = preActionSelections.remove(editor) ?: return
 
             // Now, trigger the highlight using the original, unmodified selection state.
-            handleCopyAction(editor, project, selections)
+            handleCopyAction(editor, selections)
         }
     }
 
@@ -67,12 +71,12 @@ class HighlightOnCopyListener : AnActionListener {
                 action.toString().contains("Copy", ignoreCase = true)
     }
 
-    private fun handleCopyAction(editor: Editor, project: Project, selections: List<HighlightInfo>) {
+    private fun handleCopyAction(editor: Editor, selections: List<HighlightInfo>) {
         val settings = HighlightOnCopySettings.getInstance()
         if (selections.isEmpty()) return
 
         // Apply highlighting with blinking effect
-        highlightSelections(editor, selections, settings, project)
+        highlightSelections(editor, selections, settings)
     }
 
     private fun getSelections(editor: Editor): List<HighlightInfo> {
@@ -119,9 +123,10 @@ class HighlightOnCopyListener : AnActionListener {
     private fun highlightSelections(
         editor: Editor,
         selections: List<HighlightInfo>,
-        settings: HighlightOnCopySettings,
-        project: Project
+        settings: HighlightOnCopySettings
     ) {
+        if (selections.isEmpty()) return
+
         val markupModel = editor.markupModel
         val highlighters = mutableListOf<RangeHighlighter>()
 
@@ -134,111 +139,104 @@ class HighlightOnCopyListener : AnActionListener {
             fontType = Font.BOLD
         }
 
-        if (selections.isNotEmpty()) {
-            val timer = Timer()
+        val maxBlinks = settings.blinkCount * 2 // Each blink = on + off
+        val blinkInterval = settings.blinkInterval.toLong()
+
+        scope.launch {
             var isHighlighted = false
-            var blinkCounter = 0
-            val maxBlinks = settings.blinkCount * 2 // Each blink = on + off
-            val blinkInterval = settings.blinkInterval.toLong()
+            repeat(maxBlinks) {
+                if (project.isDisposed) return@launch
 
-            timer.scheduleAtFixedRate(object : TimerTask() {
-                override fun run() {
-                    ApplicationManager.getApplication().invokeLater {
-                        if (project.isDisposed) {
-                            timer.cancel()
-                            return@invokeLater
+                isHighlighted = !isHighlighted
+
+                withContext(Dispatchers.EDT) {
+                    if (editor.isDisposed) return@withContext
+
+                    // Remove existing highlighters
+                    highlighters.forEach { highlighter ->
+                        try {
+                            markupModel.removeHighlighter(highlighter)
+                        } catch (e: Exception) {
+                            // Highlighter might already be removed
                         }
+                    }
+                    highlighters.clear()
 
-                        isHighlighted = !isHighlighted
-
-                        highlighters.forEach { highlighter ->
+                    // Add new highlighters if in highlighted state
+                    if (isHighlighted) {
+                        for (selectionInfo in selections) {
                             try {
-                                markupModel.removeHighlighter(highlighter)
+                                val highlighter = markupModel.addRangeHighlighter(
+                                    selectionInfo.range.startOffset,
+                                    selectionInfo.range.endOffset,
+                                    HighlighterLayer.SELECTION + 1,
+                                    textAttributes,
+                                    HighlighterTargetArea.EXACT_RANGE
+                                )
+                                highlighters.add(highlighter)
                             } catch (e: Exception) {
-                                // Highlighter might already be removed
+                                continue
                             }
-                        }
-                        highlighters.clear()
-
-                        if (isHighlighted) {
-                            for (selectionInfo in selections) {
-                                try {
-                                    val highlighter = markupModel.addRangeHighlighter(
-                                        selectionInfo.range.startOffset,
-                                        selectionInfo.range.endOffset,
-                                        HighlighterLayer.SELECTION + 1,
-                                        textAttributes,
-                                        HighlighterTargetArea.EXACT_RANGE
-                                    )
-                                    highlighters.add(highlighter)
-                                } catch (e: Exception) {
-                                    continue
-                                }
-                            }
-                        }
-
-                        blinkCounter++
-
-                        if (blinkCounter >= maxBlinks) {
-                            timer.cancel()
-                            restoreSelection(editor, selections)
                         }
                     }
                 }
-            }, 0, blinkInterval)
+
+                delay(blinkInterval)
+            }
+
+            // Restore selection after blinking completes
+            withContext(Dispatchers.EDT) {
+                if (!editor.isDisposed) {
+                    restoreSelection(editor, selections)
+                }
+            }
         }
     }
 
     private fun restoreSelection(editor: Editor, highlightInfos: List<HighlightInfo>) {
-        ApplicationManager.getApplication().invokeLater {
-            if (editor.isDisposed) return@invokeLater
+        if (editor.isDisposed) return
 
-            editor.caretModel.removeSecondaryCarets()
-            if (highlightInfos.isNotEmpty()) {
-                val firstInfo = highlightInfos.first()
-                if (firstInfo.wasOriginalSelection) {
-                    // It was a real selection, so restore it.
-                    editor.selectionModel.setSelection(firstInfo.range.startOffset, firstInfo.range.endOffset)
-                    editor.caretModel.moveToOffset(firstInfo.range.endOffset)
-                } else {
-                    // It was a line copy. The default action may have moved the caret.
-                    // We must NOT create a selection. Just ensure the primary caret has none.
-                    editor.caretModel.primaryCaret.removeSelection()
-                }
-
-                // Restore any other selections as secondary carets
-                highlightInfos.drop(1).forEach { info ->
-                    // Place the caret at the end of the range, which is standard.
-                    val newCaret = editor.caretModel.addCaret(editor.offsetToLogicalPosition(info.range.endOffset), true)
-                    if (info.wasOriginalSelection) {
-                        newCaret?.setSelection(info.range.startOffset, info.range.endOffset)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun parseColor(hexColor: String): Color {
-        return try {
-            if (hexColor.length == 9 && hexColor.startsWith("#")) {
-                val rgb = hexColor.substring(1, 7)
-                val alpha = hexColor.substring(7, 9)
-                val r = rgb.substring(0, 2).toInt(16)
-                val g = rgb.substring(2, 4).toInt(16)
-                val b = rgb.substring(4, 6).toInt(16)
-                val a = alpha.toInt(16)
-                Color(r, g, b, a)
+        editor.caretModel.removeSecondaryCarets()
+        if (highlightInfos.isNotEmpty()) {
+            val firstInfo = highlightInfos.first()
+            if (firstInfo.wasOriginalSelection) {
+                // It was a real selection, so restore it.
+                editor.selectionModel.setSelection(firstInfo.range.startOffset, firstInfo.range.endOffset)
+                editor.caretModel.moveToOffset(firstInfo.range.endOffset)
             } else {
-                Color.decode(hexColor)
+                // It was a line copy. The default action may have moved the caret.
+                // We must NOT create a selection. Just ensure the primary caret has none.
+                editor.caretModel.primaryCaret.removeSelection()
             }
-        } catch (e: Exception) {
-            Color.YELLOW
+
+            // Restore any other selections as secondary carets
+            highlightInfos.drop(1).forEach { info ->
+                // Place the caret at the end of the range, which is standard.
+                val newCaret = editor.caretModel.addCaret(editor.offsetToLogicalPosition(info.range.endOffset), true)
+                if (info.wasOriginalSelection) {
+                    newCaret?.setSelection(info.range.startOffset, info.range.endOffset)
+                }
+            }
         }
     }
 
     companion object {
-        fun getInstance(project: Project): HighlightOnCopyListener {
-            return project.getService(HighlightOnCopyListener::class.java)
+        fun parseColor(hexColor: String): Color {
+            return try {
+                if (hexColor.length == 9 && hexColor.startsWith("#")) {
+                    val rgb = hexColor.substring(1, 7)
+                    val alpha = hexColor.substring(7, 9)
+                    val r = rgb.substring(0, 2).toInt(16)
+                    val g = rgb.substring(2, 4).toInt(16)
+                    val b = rgb.substring(4, 6).toInt(16)
+                    val a = alpha.toInt(16)
+                    Color(r, g, b, a)
+                } else {
+                    Color.decode(hexColor)
+                }
+            } catch (e: Exception) {
+                Color.YELLOW
+            }
         }
     }
 }
