@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.intellij.openapi.diagnostic.thisLogger
 import java.awt.Color
 import java.awt.Font
 import java.util.WeakHashMap
@@ -157,7 +158,7 @@ class HighlightOnCopyListener(
                         try {
                             markupModel.removeHighlighter(highlighter)
                         } catch (e: Exception) {
-                            // Highlighter might already be removed
+                            thisLogger().debug("Highlighter already removed", e)
                         }
                     }
                     highlighters.clear()
@@ -175,6 +176,7 @@ class HighlightOnCopyListener(
                                 )
                                 highlighters.add(highlighter)
                             } catch (e: Exception) {
+                                thisLogger().debug("Failed to add range highlighter", e)
                                 continue
                             }
                         }
