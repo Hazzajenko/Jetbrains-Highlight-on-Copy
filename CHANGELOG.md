@@ -9,7 +9,7 @@
 - Replaced Timer with coroutines for highlight removal - improves performance and cancellation handling
 - Migrated settings UI to Kotlin UI DSL v2 (replaces deprecated FormBuilder)
 - Dropped support for 2024.x IDEs - now requires IntelliJ Platform 251+ (2025.1+)
-- Updated Kotlin from 2.2.21 to 2.3.0
+- Downgraded Kotlin from 2.2.21 to 2.1.10 (lowest version compatible with 2025.1-2025.3 bundled stdlib)
 - Updated IntelliJ Platform Gradle Plugin from 2.10.4 to 2.10.5
 - Updated Gradle Changelog Plugin from 2.4.0 to 2.5.0
 - Updated Kotlinx Kover from 0.9.3 to 0.9.4
@@ -19,6 +19,7 @@
 ### Fixed
 
 - Fixed duplicate service/listener registration that could cause multiple highlight instances
+- Fixed "Debug metadata version mismatch" crash caused by Kotlin 2.3.0 incompatibility with IDE bundled stdlib
 
 ### Removed
 
