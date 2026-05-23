@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Removed `until-build` cap - plugin now compatible with all future IDE releases (JetBrains recommended default)
+
 ## [1.0.4] - 2025-12-19
 
 ### Changed
