@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.0.4] - 2025-12-19
+
 ### Changed
 
 - Replaced Timer with coroutines for highlight removal - improves performance and cancellation handling
