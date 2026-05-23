@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-05-23
+
 ### Changed
 
 - Removed `until-build` cap - plugin now compatible with all future IDE releases (JetBrains recommended default)
@@ -89,7 +91,9 @@
 - Compatibility with all copy methods (Ctrl+C, Edit menu, right-click copy)
 - Easy configuration through IDE settings panel at `Tools → Highlight on Copy`
 
-[Unreleased]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.4...v1.0.5
+[1.0.4]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/Hazzajenko/Jetbrains-Highlight-on-Copy/compare/v1.0.0...v1.0.1
