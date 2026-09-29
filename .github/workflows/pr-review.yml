@@ -63,5 +63,5 @@ jobs:
           # The action turns a PR conversation comment that is only /review into
           # "Summarize this thread", so that case gets a review prompt. An empty
           # prompt keeps the action's own prompt. A bare /review on a diff line
-          # keeps it on purpose: it reviews the commented lines. See monopoly-deal#264.
+          # keeps it on purpose: it reviews the commented lines.
           prompt: ${{ github.event_name == 'issue_comment' && github.event.comment.body == '/review' && 'Review this pull request' || '' }}
