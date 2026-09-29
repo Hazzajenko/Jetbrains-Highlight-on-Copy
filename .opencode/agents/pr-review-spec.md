@@ -38,7 +38,7 @@ Answer one question: does the diff faithfully do what the originating issue asks
 
 1. Collect the issue numbers from the pull request body that you were given (`Closes #<n>`) and from `git log main..HEAD --oneline`.
 2. Read each issue with `gh issue view <n> --json title,body,labels,comments`. The acceptance criteria in the issue are the main requirements. Read any parent issue that the issue links to, for context.
-3. Read `CLAUDE.md` for the plugin architecture.
+3. Read `README.md` for what the plugin does.
 
 If you find no issue, report "no spec available" and stop.
 

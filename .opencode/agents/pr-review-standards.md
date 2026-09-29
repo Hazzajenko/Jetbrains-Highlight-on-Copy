@@ -37,7 +37,7 @@ Answer one question: does the diff conform to this repo's documented coding stan
 
 Read these before you read the diff:
 
-- `CLAUDE.md`. Flag code that breaks its architecture or key flow.
+- `README.md`. Flag code that breaks the behaviour or settings it documents.
 
 Skip anything that tooling enforces: Qodana inspections and Kotlin compile errors.
 

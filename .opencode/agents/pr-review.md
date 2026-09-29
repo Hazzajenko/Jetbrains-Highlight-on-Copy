@@ -41,7 +41,7 @@ You coordinate an experimental pull request review. Do not change files. Do not 
 The review has three axes. Keep them separate from start to end:
 
 - **Defects**: real correctness, regression, security, resource, concurrency, contract, and significant performance problems.
-- **Standards**: does the diff conform to `CLAUDE.md` and the smell baseline?
+- **Standards**: does the diff conform to `README.md` and the smell baseline?
 - **Spec**: does the diff do what the originating issue asks?
 
 Do this:
