@@ -21,6 +21,14 @@ permission:
     'git status --short': allow
     'git show HEAD --stat': allow
     'gh issue view *': allow
+    # The last matching rule wins. These block a second command after gh issue view.
+    '*;*': deny
+    '*&*': deny
+    '*|*': deny
+    '*>*': deny
+    '*<*': deny
+    '*$*': deny
+    '*`*': deny
   task: deny
   webfetch: deny
   websearch: deny
