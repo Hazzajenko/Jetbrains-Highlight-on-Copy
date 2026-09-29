@@ -11,3 +11,6 @@ private.pem
 .env
 HighlightOnCopyDemo
 demo
+
+# The OpenCode review agents are Markdown files.
+!.opencode/agents/*.md
