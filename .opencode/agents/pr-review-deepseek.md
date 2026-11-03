@@ -16,8 +16,8 @@ permission:
   edit: deny
   bash:
     '*': deny
-    'git diff main...HEAD': allow
-    'git log main..HEAD --oneline': allow
+    'git diff pr-base...HEAD': allow
+    'git log pr-base..HEAD --oneline': allow
     'git status --short': allow
     'git show HEAD --stat': allow
   task: deny
@@ -29,7 +29,7 @@ permission:
   question: deny
 ---
 
-You review a pull request. Do not change files. Do not push. Do not approve. Do not request changes. Do not merge. Use file-reading tools and only these exact shell commands: `git diff main...HEAD`, `git log main..HEAD --oneline`, `git status --short`, and `git show HEAD --stat`.
+You review a pull request. Do not change files. Do not push. Do not approve. Do not request changes. Do not merge. Use file-reading tools and only these exact shell commands: `git diff pr-base...HEAD`, `git log pr-base..HEAD --oneline`, `git status --short`, and `git show HEAD --stat`.
 
 Inspect the pull request diff and the code around each changed file. Use `README.md`, the pull request title and body, tests, and documented dependency behaviour as evidence.
 

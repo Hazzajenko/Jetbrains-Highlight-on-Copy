@@ -3,8 +3,6 @@ name: PR Review
 on:
   pull_request:
     types: [opened, ready_for_review]
-    # The agents diff the PR against main, so only PRs into main get a review.
-    branches: [main]
   issue_comment:
     types: [created]
   pull_request_review_comment:
@@ -48,10 +46,17 @@ jobs:
         with:
           fetch-depth: 0
       # A comment event checks out main here. The OpenCode action then checks out
-      # the PR branch itself, so the diff below is the PR diff.
-      # The agents run `git diff main...HEAD`. A pull_request checkout has no local main branch.
-      - name: Create local main
-        run: git show-ref --verify --quiet refs/heads/main || git branch main origin/main
+      # the PR branch itself. The agents run `git diff pr-base...HEAD`, so pr-base
+      # is the base branch of the PR, and a stacked PR gets a review of its own
+      # commits only. A comment event has no base branch in its payload, so gh
+      # reads it for every event.
+      - name: Create local pr-base
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          base=$(gh pr view "$PR" --json baseRefName --jq .baseRefName)
+          git branch --force pr-base "origin/$base"
       - uses: anomalyco/opencode/github@v1.18.32
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}

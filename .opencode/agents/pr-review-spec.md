@@ -16,8 +16,8 @@ permission:
   edit: deny
   bash:
     '*': deny
-    'git diff main...HEAD': allow
-    'git log main..HEAD --oneline': allow
+    'git diff pr-base...HEAD': allow
+    'git log pr-base..HEAD --oneline': allow
     'git status --short': allow
     'git show HEAD --stat': allow
     'gh issue view *': allow
@@ -38,13 +38,13 @@ permission:
   question: deny
 ---
 
-You review a pull request on the Spec axis. Do not change files. Do not push. Do not approve. Do not request changes. Do not merge. Do not create, edit, or comment on issues. Use file-reading tools and only these shell commands: `git diff main...HEAD`, `git log main..HEAD --oneline`, `git status --short`, `git show HEAD --stat`, and `gh issue view <number> --json title,body,labels,comments`.
+You review a pull request on the Spec axis. Do not change files. Do not push. Do not approve. Do not request changes. Do not merge. Do not create, edit, or comment on issues. Use file-reading tools and only these shell commands: `git diff pr-base...HEAD`, `git log pr-base..HEAD --oneline`, `git status --short`, `git show HEAD --stat`, and `gh issue view <number> --json title,body,labels,comments`.
 
 Answer one question: does the diff faithfully do what the originating issue asks? Do not report code style. Do not hunt for general bugs. Other reviewers do that.
 
 ## Find the spec
 
-1. Collect the issue numbers from the pull request body that you were given (`Closes #<n>`) and from `git log main..HEAD --oneline`.
+1. Collect the issue numbers from the pull request body that you were given (`Closes #<n>`) and from `git log pr-base..HEAD --oneline`.
 2. Read each issue with `gh issue view <n> --json title,body,labels,comments`. The acceptance criteria in the issue are the main requirements. Read any parent issue that the issue links to, for context.
 3. Read `README.md` for what the plugin does.
 
