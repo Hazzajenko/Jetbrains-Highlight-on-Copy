@@ -57,7 +57,7 @@ jobs:
         run: |
           base=$(gh pr view "$PR" --json baseRefName --jq .baseRefName)
           git branch --force pr-base "origin/$base"
-      - uses: anomalyco/opencode/github@v1.18.32
+      - uses: anomalyco/opencode/github@v2.2.5
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
